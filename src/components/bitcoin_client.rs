@@ -3,7 +3,7 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use bitcoin::{consensus::deserialize, BlockHash, MerkleBlock, Txid};
-use ckb_bitcoin_spv_verifier::types::core::{DogecoinHeader, Header};
+use ckb_bitcoin_spv_verifier::types::core::DogecoinHeader;
 use faster_hex::hex_decode;
 use jsonrpc_core::{Error as RpcError, ErrorCode as RpcErrorCode, Id as RpcId, Value as RpcValue};
 use reqwest::blocking::Client;
@@ -150,7 +150,7 @@ impl BitcoinClient {
             .and_then(|hash| self.get_block_height(hash))
     }
 
-    pub fn get_tip_state(&self) -> BtcRpcResult<(u32, Header)> {
+    pub fn get_tip_state(&self) -> BtcRpcResult<(u32, DogecoinHeader)> {
         self.get_best_block_hash().and_then(|hash| {
             self.get_block_height(hash)
                 .and_then(|height| self.get_block_header(hash).map(|header| (height, header)))
@@ -185,22 +185,20 @@ impl BitcoinClient {
         })
     }
 
-    pub fn get_block_header(&self, hash: BlockHash) -> BtcRpcResult<Header> {
+    pub fn get_block_header(&self, hash: BlockHash) -> BtcRpcResult<DogecoinHeader> {
         self.get_raw_block_header(hash).and_then(|bin| {
-            let dogecoin_header: DogecoinHeader = deserialize(&bin).map_err(|err| {
+            deserialize(&bin).map_err(|err| {
                 let error = RpcError {
                     code: RpcErrorCode::ParseError,
                     message: format!("failed to deserialize header from hex string since {err}"),
                     data: None,
                 };
-                let error: RpcError = error;
-                error
-            })?;
-            Ok(dogecoin_header.into())
+                error.into()
+            })
         })
     }
 
-    pub fn get_block_header_by_height(&self, height: u32) -> BtcRpcResult<Header> {
+    pub fn get_block_header_by_height(&self, height: u32) -> BtcRpcResult<DogecoinHeader> {
         self.get_block_hash(height)
             .and_then(|hash| self.get_block_header(hash))
     }
@@ -242,7 +240,7 @@ impl BitcoinClient {
 
 /// Implement combined methods.
 impl BitcoinClient {
-    pub fn check_then_fetch_header(&self, height: u32) -> Result<Header> {
+    pub fn check_then_fetch_header(&self, height: u32) -> Result<DogecoinHeader> {
         let tip_height = self.get_tip_height()?;
         log::debug!("The height of the best bitcoin block is {tip_height}");
         if height > tip_height {
@@ -262,7 +260,7 @@ impl BitcoinClient {
         start: u32,
         end: u32,
         mut expected_prev_hash: BlockHash,
-    ) -> Result<Option<Vec<Header>>> {
+    ) -> Result<Option<Vec<DogecoinHeader>>> {
         log::info!("Download headers from {start} to {end} base on {expected_prev_hash:#x}");
         let mut headers = Vec::new();
         for height in start..=end {

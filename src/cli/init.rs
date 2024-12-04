@@ -127,7 +127,8 @@ impl Args {
             .check_then_fetch_header(self.bitcoin_start_height)?;
 
         let storage = Storage::new(&self.data_dir)?;
-        let spv_client = storage.initialize_with(self.bitcoin_start_height, btc_start_header)?;
+        let spv_client =
+            storage.initialize_with(self.bitcoin_start_height, btc_start_header.clone())?;
 
         let network_info =
             NetworkInfo::new(self.ckb.network, self.ckb.ckb_endpoint.as_str().to_owned());

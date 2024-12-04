@@ -1,7 +1,7 @@
 //! Implement reading data from the storage.
 
 use bitcoin::consensus::deserialize;
-use ckb_bitcoin_spv_verifier::types::{core::Header, packed, prelude::*};
+use ckb_bitcoin_spv_verifier::types::{core::DogecoinHeader, packed, prelude::*};
 use ckb_types::packed::{CellDep, CellDepReader, Script, ScriptReader};
 
 use crate::components::storage::{
@@ -44,7 +44,7 @@ impl StorageReader for Storage {
             .and_then(|opt| opt.ok_or_else(|| Error::not_found("tip bitcoin height")))
     }
 
-    fn get_bitcoin_header(&self, height: u32) -> Result<Header> {
+    fn get_bitcoin_header(&self, height: u32) -> Result<DogecoinHeader> {
         let key = height.to_be_bytes();
         self.get_cf(columns::COLUMN_BITCOIN_HEADERS, key)?
             .map(|raw| {

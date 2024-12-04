@@ -3,7 +3,7 @@ use std::num::NonZeroU32;
 use bitcoin::constants::DIFFCHANGE_INTERVAL;
 use ckb_bitcoin_spv_verifier::{
     types::{
-        core::{Hash, Header, HeaderDigest, MmrProof, SpvClient, Target},
+        core::{DogecoinHeader, Hash, Header, HeaderDigest, MmrProof, SpvClient, Target},
         packed,
         prelude::*,
     },
@@ -24,7 +24,7 @@ pub(crate) trait StorageReader: Send + Sync + Sized {
     fn get_base_bitcoin_height(&self) -> Result<Option<u32>>;
     // Store Bitcoin state
     fn get_tip_bitcoin_height(&self) -> Result<u32>;
-    fn get_bitcoin_header(&self, height: u32) -> Result<Header>;
+    fn get_bitcoin_header(&self, height: u32) -> Result<DogecoinHeader>;
     // For MMR
     fn get_bitcoin_header_digest(&self, position: u64) -> Result<Option<packed::HeaderDigest>>;
     // For CKB transactions
@@ -37,7 +37,7 @@ pub(crate) trait StorageWriter: Send + Sync + Sized {
     fn put_base_bitcoin_height(&self, height: u32) -> Result<()>;
     // Store Bitcoin state
     fn put_tip_bitcoin_height(&self, height: u32) -> Result<()>;
-    fn put_bitcoin_header(&self, height: u32, header: &Header) -> Result<()>;
+    fn put_bitcoin_header(&self, height: u32, header: &DogecoinHeader) -> Result<()>;
     // For MMR
     fn put_bitcoin_header_digest(&self, position: u64, digest: &packed::HeaderDigest)
         -> Result<()>;
@@ -76,12 +76,13 @@ pub(crate) trait BitcoinSpvStorage: InternalBitcoinSpvStorage {
         self.get_base_bitcoin_height().map(|inner| inner.is_some())
     }
 
-    fn initialize_with(&self, height: u32, header: Header) -> Result<SpvClient> {
+    fn initialize_with(&self, height: u32, header: DogecoinHeader) -> Result<SpvClient> {
         if self.is_initialized()? {
             return Err(Error::data("don't initialize a non-empty storage"));
         }
         let block_hash: Hash = header.block_hash().into();
-        let digest = HeaderDigest::new_leaf(height, &header).pack();
+        let pure_header: Header = header.clone().into();
+        let digest = HeaderDigest::new_leaf(height, &pure_header).pack();
 
         let mut mmr = ClientRootMMR::new(0, self.clone());
 
@@ -110,7 +111,7 @@ pub(crate) trait BitcoinSpvStorage: InternalBitcoinSpvStorage {
         Ok(())
     }
 
-    fn append_headers(&self, headers: Vec<Header>) -> Result<(u32, Header)> {
+    fn append_headers(&self, headers: Vec<DogecoinHeader>) -> Result<(u32, DogecoinHeader)> {
         if headers.is_empty() {
             return Err(Error::not_found("input headers"));
         }
@@ -130,13 +131,14 @@ pub(crate) trait BitcoinSpvStorage: InternalBitcoinSpvStorage {
                 return Err(Error::data(msg));
             }
             tip_height += 1;
-            tip_header = *header;
+            tip_header = header.clone();
             tip_hash = header.block_hash().into();
 
             let index = tip_height - base_height;
             let position = mmr::lib::leaf_index_to_pos(u64::from(index));
 
-            let digest = HeaderDigest::new_leaf(tip_height, header).pack();
+            let pure_header: Header = header.clone().into();
+            let digest = HeaderDigest::new_leaf(tip_height, &pure_header).pack();
 
             self.put_bitcoin_header(tip_height, &tip_header)?;
             positions.push(position);
@@ -260,7 +262,7 @@ pub(crate) trait BitcoinSpvStorage: InternalBitcoinSpvStorage {
         Ok(())
     }
 
-    fn base_state(&self) -> Result<(u32, Header)> {
+    fn base_state(&self) -> Result<(u32, DogecoinHeader)> {
         self.get_base_bitcoin_height()
             .and_then(|opt| opt.ok_or_else(|| Error::not_found("base bitcoin height")))
             .and_then(|height| {
@@ -269,7 +271,7 @@ pub(crate) trait BitcoinSpvStorage: InternalBitcoinSpvStorage {
             })
     }
 
-    fn tip_state(&self) -> Result<(u32, Header)> {
+    fn tip_state(&self) -> Result<(u32, DogecoinHeader)> {
         self.get_tip_bitcoin_height().and_then(|height| {
             self.get_bitcoin_header(height)
                 .map(|header| (height, header))

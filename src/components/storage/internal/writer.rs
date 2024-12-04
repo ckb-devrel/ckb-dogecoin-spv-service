@@ -1,7 +1,7 @@
 //! Implement writing data into the storage.
 
 use bitcoin::consensus::serialize;
-use ckb_bitcoin_spv_verifier::types::{core::Header, packed, prelude::*};
+use ckb_bitcoin_spv_verifier::types::{core::DogecoinHeader, packed, prelude::*};
 use ckb_types::packed::{CellDep, Script};
 
 use crate::components::storage::{
@@ -29,7 +29,7 @@ impl StorageWriter for Storage {
         self.put(keys::TIP_BITCOIN_HEIGHT, value.as_slice())
     }
 
-    fn put_bitcoin_header(&self, height: u32, header: &Header) -> Result<()> {
+    fn put_bitcoin_header(&self, height: u32, header: &DogecoinHeader) -> Result<()> {
         let key = height.to_be_bytes();
         let value = serialize(header);
         self.put_cf(columns::COLUMN_BITCOIN_HEADERS, key, value)

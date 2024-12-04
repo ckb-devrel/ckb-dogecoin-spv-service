@@ -2,7 +2,7 @@
 
 use bitcoin::BlockHash;
 use ckb_bitcoin_spv_verifier::types::{
-    core::{Hash, Header},
+    core::{DogecoinHeader, Hash},
     prelude::{Pack as VPack, Unpack as VUnpack},
 };
 use ckb_sdk::rpc::CkbRpcClient;
@@ -219,7 +219,7 @@ impl SpvService {
         mut start_height: u32,
         end_height: u32,
         mut start_hash: BlockHash,
-    ) -> Result<Option<Vec<Header>>> {
+    ) -> Result<Option<Vec<DogecoinHeader>>> {
         let spv = self;
         let mut headers = Vec::new();
         while start_height <= end_height {
