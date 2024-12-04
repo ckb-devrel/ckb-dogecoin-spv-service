@@ -167,9 +167,8 @@ checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
 
 [[package]]
 name = "bitcoin"
-version = "0.31.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c85783c2fe40083ea54a33aa2f0ba58831d90fcd190f5bdc47e74e84d2a96ae"
+version = "0.31.1"
+source = "git+https://github.com/EthanYuan/rust-bitcoin.git?rev=b484190#b4841906a8781159910fec9b61dcaa3471d63ddb"
 dependencies = [
  "bech32 0.10.0-beta",
  "bitcoin-internals",
@@ -379,7 +378,7 @@ dependencies = [
 [[package]]
 name = "ckb-bitcoin-spv-verifier"
 version = "0.1.0"
-source = "git+https://github.com/ckb-cell/ckb-bitcoin-spv?rev=6c3f3d1#6c3f3d1aa8c109bd1e52b5beb2ed40c5a9c2e949"
+source = "git+https://github.com/EthanYuan/ckb-bitcoin-spv?rev=925366#9253667ba6b33c074429ff5aef85e948756b698b"
 dependencies = [
  "bitcoin",
  "bitcoin_hashes",
@@ -1766,7 +1765,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
 dependencies = [
  "cfg-if 1.0.0",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.4",
 ]
 
 [[package]]

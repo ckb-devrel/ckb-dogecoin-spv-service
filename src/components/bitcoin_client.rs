@@ -3,7 +3,7 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use bitcoin::{consensus::deserialize, BlockHash, MerkleBlock, Txid};
-use ckb_bitcoin_spv_verifier::types::core::Header;
+use ckb_bitcoin_spv_verifier::types::core::{DogecoinHeader, Header};
 use faster_hex::hex_decode;
 use jsonrpc_core::{Error as RpcError, ErrorCode as RpcErrorCode, Id as RpcId, Value as RpcValue};
 use reqwest::blocking::Client;
@@ -187,14 +187,16 @@ impl BitcoinClient {
 
     pub fn get_block_header(&self, hash: BlockHash) -> BtcRpcResult<Header> {
         self.get_raw_block_header(hash).and_then(|bin| {
-            deserialize(&bin).map_err(|err| {
+            let dogecoin_header: DogecoinHeader = deserialize(&bin).map_err(|err| {
                 let error = RpcError {
                     code: RpcErrorCode::ParseError,
                     message: format!("failed to deserialize header from hex string since {err}"),
                     data: None,
                 };
-                error.into()
-            })
+                let error: RpcError = error;
+                error
+            })?;
+            Ok(dogecoin_header.into())
         })
     }
 
