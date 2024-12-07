@@ -31,7 +31,7 @@ tokio = { version = "1.36", features = ["rt-multi-thread", "full"] }
 rocksdb = { package = "ckb-rocksdb", version ="=0.21.1", features = ["snappy"], default-features = false }
 secp256k1 = "0.24"
 
-bitcoin = { git = "https://github.com/EthanYuan/rust-bitcoin.git", rev = "45051d4d", features = ["serde"] }
+bitcoin = { git = "https://github.com/EthanYuan/rust-bitcoin.git", rev = "8205893f", features = ["serde"] }
 ckb-sdk = "3.1"
 ckb-types         = "0.115.0-rc2"
 ckb-jsonrpc-types = "0.115.0-rc2"
@@ -40,7 +40,7 @@ ckb-hash          = "0.115.0-rc2"
 [dependencies.ckb-bitcoin-spv-verifier]
 version = "0.1.0"
 git = "https://github.com/EthanYuan/ckb-bitcoin-spv"
-rev = "99843fa"
+rev = "9c61aaa"
 
 [features]
 default = ["default-tls"]

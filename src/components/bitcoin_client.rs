@@ -2,7 +2,7 @@
 
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use bitcoin::{consensus::deserialize, BlockHash, MerkleBlock, Txid};
+use bitcoin::{consensus::deserialize, dogecoin::DogeMerkleBlock, BlockHash, MerkleBlock, Txid};
 use ckb_bitcoin_spv_verifier::types::core::DogecoinHeader;
 use faster_hex::hex_decode;
 use jsonrpc_core::{Error as RpcError, ErrorCode as RpcErrorCode, Id as RpcId, Value as RpcValue};
@@ -222,7 +222,7 @@ impl BitcoinClient {
 
     pub fn get_tx_out_proof(&self, txid: Txid) -> BtcRpcResult<(MerkleBlock, Vec<u8>)> {
         self.get_raw_tx_out_proof(txid).and_then(|bin| {
-            deserialize(&bin)
+            deserialize::<DogeMerkleBlock>(&bin)
                 .map_err(|err| {
                     let error = RpcError {
                         code: RpcErrorCode::ParseError,
@@ -233,7 +233,13 @@ impl BitcoinClient {
                     };
                     error.into()
                 })
-                .map(|mb| (mb, bin))
+                .map(|dmb| {
+                    let mb = MerkleBlock {
+                        header: dmb.header.into(),
+                        txn: dmb.txn,
+                    };
+                    (mb, bin)
+                })
         })
     }
 }
