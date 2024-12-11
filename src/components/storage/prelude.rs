@@ -1,6 +1,5 @@
 use std::num::NonZeroU32;
 
-use bitcoin::constants::DIFFCHANGE_INTERVAL;
 use ckb_bitcoin_spv_verifier::{
     types::{
         core::{DogecoinHeader, Hash, Header, HeaderDigest, MmrProof, SpvClient, Target},
@@ -8,7 +7,7 @@ use ckb_bitcoin_spv_verifier::{
         prelude::*,
     },
     utilities::{
-        bitcoin::calculate_next_target,
+        dogecoin::calculate_dogecoin_next_work_required,
         mmr::{self, ClientRootMMR},
     },
 };
@@ -155,7 +154,7 @@ pub(crate) trait BitcoinSpvStorage: InternalBitcoinSpvStorage {
         &self,
         prev_height: u32,
         limit: NonZeroU32,
-        flags: u8,
+        _flags: u8,
     ) -> Result<(SpvClient, packed::SpvUpdate)> {
         let mut tip_height = self.get_tip_bitcoin_height()?;
         if tip_height > prev_height.saturating_add(limit.into()) {
@@ -189,29 +188,24 @@ pub(crate) trait BitcoinSpvStorage: InternalBitcoinSpvStorage {
             headers.push(header)
         }
 
-        let flag = (tip_height + 1) % DIFFCHANGE_INTERVAL;
-
-        let target_adjust_info = if flag == 1 {
-            packed::TargetAdjustInfo::encode(tip_header.time, tip_header.bits)
-        } else {
-            let start_height = (tip_height / DIFFCHANGE_INTERVAL) * DIFFCHANGE_INTERVAL;
+        let target_adjust_info = {
+            let start_height = tip_height - 1;
             let start_header = self.get_bitcoin_header(start_height)?;
-            if flag == 0 {
-                let curr_target: Target = tip_header.bits.into();
-                log::trace!(
-                    "height {tip_height}, time: {}, target {curr_target:#x}",
-                    tip_header.time
-                );
-                let next_target =
-                    calculate_next_target(curr_target, start_header.time, tip_header.time, flags);
-                log::trace!("calculated new target  {next_target:#x}");
-                let next_bits = next_target.to_compact_lossy();
-                let next_target: Target = next_bits.into();
-                log::trace!("after definition lossy {next_target:#x}");
-                packed::TargetAdjustInfo::encode(start_header.time, next_bits)
-            } else {
-                packed::TargetAdjustInfo::encode(start_header.time, start_header.bits)
-            }
+            let curr_target: Target = tip_header.bits.into();
+            log::trace!(
+                "height {tip_height}, time: {}, target {curr_target:#x}",
+                tip_header.time
+            );
+            let next_target = calculate_dogecoin_next_work_required(
+                curr_target,
+                start_header.time,
+                tip_header.time,
+            );
+            log::trace!("calculated new target  {next_target:#x}");
+            let next_bits = next_target.to_compact_lossy();
+            let next_target: Target = next_bits.into();
+            log::trace!("after definition lossy {next_target:#x}");
+            packed::TargetAdjustInfo::encode(tip_header.time, next_bits)
         };
 
         let spv_client = SpvClient {
