@@ -168,7 +168,7 @@ checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
 [[package]]
 name = "bitcoin"
 version = "0.31.1"
-source = "git+https://github.com/EthanYuan/rust-bitcoin.git?rev=8205893f#8205893f63d2f46fd553247a6c6d1f0e8e3a71f4"
+source = "git+https://github.com/EthanYuan/rust-bitcoin.git?rev=9668223a#9668223acbaa713ac768466f056e8914c4c44cba"
 dependencies = [
  "bech32 0.10.0-beta",
  "bitcoin-internals",
@@ -378,7 +378,7 @@ dependencies = [
 [[package]]
 name = "ckb-bitcoin-spv-verifier"
 version = "0.1.0"
-source = "git+https://github.com/EthanYuan/ckb-bitcoin-spv?rev=9c61aaa#9c61aaac764a71c9ad049b5b22ca52d262d1b5ed"
+source = "git+https://github.com/EthanYuan/ckb-bitcoin-spv?rev=babad40#babad40c92fd405d2a028786b8a77a33ea38a23c"
 dependencies = [
  "bitcoin",
  "bitcoin_hashes",
