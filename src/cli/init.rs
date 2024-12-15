@@ -2,7 +2,6 @@
 
 use std::{collections::HashMap, path::PathBuf};
 
-use bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL;
 use ckb_bitcoin_spv_verifier::{
     constants::{FLAG_CHAIN_TYPE_MAINNET, FLAG_CHAIN_TYPE_SIGNET, FLAG_CHAIN_TYPE_TESTNET},
     types::{core::Hash as BitcoinHash, packed, prelude::Pack as VPack},
@@ -409,12 +408,10 @@ impl Args {
             return Err(Error::cli(msg));
         }
 
-        if self.bitcoin_start_height % DIFFCHANGE_INTERVAL != 0 {
-            let msg = format!(
-                "invalid Bitcoint start height, expected multiples of \
-                {DIFFCHANGE_INTERVAL} but got {}",
-                self.bitcoin_start_height
-            );
+        // Make sure to start with a high enough block as a starting point to bypass historical compatibility issues.
+        // https://github.com/dogecoin/dogecoin/discussions/3404
+        if self.bitcoin_start_height < 2000000 {
+            let msg = "The Dogecoint start height should be greater than 2000000";
             return Err(Error::cli(msg));
         }
 

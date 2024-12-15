@@ -40,7 +40,7 @@ ckb-hash          = "0.115.0-rc2"
 [dependencies.ckb-bitcoin-spv-verifier]
 version = "0.1.0"
 git = "https://github.com/EthanYuan/ckb-bitcoin-spv"
-rev = "d4654a0"
+rev = "3c6691b"
 
 [features]
 default = ["default-tls"]
