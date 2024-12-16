@@ -495,6 +495,11 @@ impl Args {
         )?;
 
         let tx_json = TransactionView::from(tx_with_groups.get_tx_view().clone());
+
+        // dump_data
+        let json_string = serde_json::to_string_pretty(&tx_json).unwrap();
+        std::fs::write("./doge_update.json", json_string).unwrap();
+
         let tx_hash = self
             .ckb
             .client()
@@ -771,6 +776,11 @@ impl Args {
         )?;
 
         let tx_json = TransactionView::from(tx_with_groups.get_tx_view().clone());
+
+        // dump_data
+        let json_string = serde_json::to_string_pretty(&tx_json).unwrap();
+        std::fs::write("./doge_reorg.json", json_string).unwrap();
+
         let tx_hash = self
             .ckb
             .client()
