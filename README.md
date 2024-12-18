@@ -11,6 +11,34 @@ they can be verified on [CKB].
 
 [License]: https://img.shields.io/badge/License-MIT-blue.svg
 
+## Quick Start
+
+### Init Service
+
+The initialization command will create the local database and issue a transaction to create the CKB Dogecoin instance.
+
+```bash
+cargo run -- init --ckb-endpoint  https://testnet.ckb.dev/ --bitcoin-endpoint https://rgbpp.doge.awesomeckb.xyz --data-dir ./dogecoin/doge-main-spv-data --bitcoin-endpoint-username <USERNAME> --bitcoin-endpoint-password <PASSWORD> --bitcoin-start-height 5497632 --spv-clients-count 32 --key-file ./dogecoin/spv-updater.key --spv-contract-out-point 0x4a8fe4401f56722848b8626550e37a98bf418106347f6875f16986b8632f7a2600000000 --bitcoin-chain-type testnet --spv-owner ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqfg6vph7rhgj0acwhd348rx5leqs3cdutg2xfps4 --spv-contract-type-hash 0x4bba11695c359fe58232fd868a48f8d900232abc35d4e6099cbd2d09cf683061
+```
+
+The binary key is generated using the following method:
+
+```bash
+xxd -r -p key.text spv-updater.key
+```
+
+### Start Service
+
+Starting the service will begin syncing the Dogecoin state to the CKB Dogecoin SPV instance, while also providing the getTxProof RPC API.
+
+```bash
+cargo run -- serve --ckb-endpoint  https://testnet.ckb.dev/ --bitcoin-endpoint https://rgbpp.doge.awesomeckb.xyz --data-dir ./dogecoin/doge-main-spv-data --bitcoin-endpoint-username <USERNAME> --bitcoin-endpoint-password <PASSWORD> --key-file ./dogecoin/spv-updater.key --listen-address 127.0.0.1:8888 --spv-contract-out-point 0x4a8fe4401f56722848b8626550e37a98bf418106347f6875f16986b8632f7a2600000000 --spv-headers-update-limit 30 2>&1 | tee mainnet.log
+```
+
+### Docker Deployment
+
+For deploying the service using Docker, you can refer to the GitHub Actions configuration file for Docker deployment [here](/.github/workflows/docker.yml). This configuration will automatically build the Docker image and push it to the GitHub Container Registry whenever changes are made to the `develop` or `master` branches.
+
 ## Usage
 
 With the command line option `-h`(alias of `--help`), help will be printed.
