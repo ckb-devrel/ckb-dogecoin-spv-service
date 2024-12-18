@@ -1,17 +1,43 @@
-# CKB Bitcoin SPV Service
+# CKB Dogecoin SPV Service
 
 [![License]](#license)
-[![GitHub Actions]](https://github.com/yangby-cryptape/ckb-bitcoin-spv-service/actions)
 
 > [!WARNING]
 > This repository is still in the proof-of-concept stage.
 
-A service, which synchronizes [Bitcoin] headers to a [Bitcoin SPV on CKB]
-and provides an API to generate proofs for [Bitcoin] transactions so that
+A service, which synchronizes [Dogecoin] headers to a [Dogecoin SPV on CKB]
+and provides an API to generate proofs for [Dogecoin] transactions so that
 they can be verified on [CKB].
 
 [License]: https://img.shields.io/badge/License-MIT-blue.svg
-[GitHub Actions]: https://github.com/yangby-cryptape/ckb-bitcoin-spv-service/workflows/CI/badge.svg
+
+## Quick Start
+
+### Init Service
+
+The initialization command will create the local database and issue a transaction to create the CKB Dogecoin instance.
+
+```bash
+cargo run -- init --ckb-endpoint  https://testnet.ckb.dev/ --bitcoin-endpoint https://rgbpp.doge.awesomeckb.xyz --data-dir ./dogecoin/doge-main-spv-data --bitcoin-endpoint-username <USERNAME> --bitcoin-endpoint-password <PASSWORD> --bitcoin-start-height 5497632 --spv-clients-count 32 --key-file ./dogecoin/spv-updater.key --spv-contract-out-point 0x4a8fe4401f56722848b8626550e37a98bf418106347f6875f16986b8632f7a2600000000 --bitcoin-chain-type testnet --spv-owner ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqfg6vph7rhgj0acwhd348rx5leqs3cdutg2xfps4 --spv-contract-type-hash 0x4bba11695c359fe58232fd868a48f8d900232abc35d4e6099cbd2d09cf683061
+```
+
+The binary key is generated using the following method:
+
+```bash
+xxd -r -p key.text spv-updater.key
+```
+
+### Start Service
+
+Starting the service will begin syncing the Dogecoin state to the CKB Dogecoin SPV instance, while also providing the getTxProof RPC API.
+
+```bash
+cargo run -- serve --ckb-endpoint  https://testnet.ckb.dev/ --bitcoin-endpoint https://rgbpp.doge.awesomeckb.xyz --data-dir ./dogecoin/doge-main-spv-data --bitcoin-endpoint-username <USERNAME> --bitcoin-endpoint-password <PASSWORD> --key-file ./dogecoin/spv-updater.key --listen-address 127.0.0.1:8888 --spv-contract-out-point 0x4a8fe4401f56722848b8626550e37a98bf418106347f6875f16986b8632f7a2600000000 --spv-headers-update-limit 30 2>&1 | tee mainnet.log
+```
+
+### Docker Deployment
+
+For deploying the service using Docker, you can refer to the GitHub Actions configuration file for Docker deployment [here](/.github/workflows/docker.yml). This configuration will automatically build the Docker image and push it to the GitHub Container Registry whenever changes are made to the `develop` or `master` branches.
 
 ## Usage
 
@@ -25,7 +51,7 @@ With the command line option `-h`(alias of `--help`), help will be printed.
 
   - `txid` (a hexadecimal string)
 
-    A bitcoin transaction id.
+    A dogecoin transaction id.
 
     **No `0x`-prefix, as same as [the format in Bitcoin RPC APIs](https://developer.bitcoin.org/reference/rpc/gettxoutproof.html#argument-1-txids).**
 
@@ -38,7 +64,7 @@ With the command line option `-h`(alias of `--help`), help will be printed.
 
   - `confirmations` (an unsigned integer)
 
-    Represents the required acceptance of the transaction by the bitcoin network.
+    Represents the required acceptance of the transaction by the dogecoin network.
 
   Result:
 
@@ -48,7 +74,7 @@ With the command line option `-h`(alias of `--help`), help will be printed.
 
   - `proof` ([type: `JsonBytes`])
 
-    The full proof of a bitcoin transaction, which could be verified with
+    The full proof of a dogecoin transaction, which could be verified with
     above SPV client in CKB.
 
   <details><summary>An example:</summary>
@@ -58,7 +84,7 @@ With the command line option `-h`(alias of `--help`), help will be printed.
 
   ```shell
   curl -X POST -H "Content-Type: application/json" \
-      -d '{"jsonrpc": "2.0", "method":"getTxProof", "params": ["95231964950ce016b1333ecc1ec98bf4effc3d5d579c5c7232dddd7c2200f124", 9, 10], "id": 1}' \
+      -d '{"jsonrpc": "2.0", "method":"getTxProof", "params": ["65a4a4dda2d3d166f0d1b704cc81d5a16d8100dde7d1b54ecbdff84c0695c01d", 1, 2], "id": 1}' \
       http://127.0.0.1:8888
   ```
 
@@ -67,10 +93,10 @@ With the command line option `-h`(alias of `--help`), help will be printed.
   {
       "jsonrpc": "2.0",
       "result": {
-          "proof": "0x3d03000014000000180000001c000000f90100000900000040bc0c00d9010000000018228d263ff4070e2fdb31b654704e99f850a4f31762155003000000000000000000f79ccd11440a9d383b1438ee60692fc7b78a4b8800faf6ec61ec5fc37a078387f998f265595a03175799484bca0700000c99f30ab6b29578c47b5e290383c73016dc51ceb8d8e4e4772b8914074d261cea95fae35702bd7842c06314b56f2fccf4f1e7a7a1e9316510eac47b8da580bd8c24f100227cdddd32725c9c575d3dfceff48bc91ecc3e33b116e00c95641923959c4eadf6c5194ce92e4af499234915ae16ef6ce925319ecdb782c15b7b79b8e0add7f560c4894d1a6373d3a0f0b2b7809de8c68881212e5804c973d810fac6ab81b4d8171567ed7b4c562cfd92f340f372d4d783ddaec72f4ae0898fa4f1a1609462a8aaa2c0038416074bef53effa98f61229bf5fba767cead3344362b1d9b440b1367c8597e5f42c52fb8b861ff7dd06ce2b6f8a1e7cb41197909a476e625c11f26490c00f5c00aa247fbe7b82cb4d42255596005d6aea0c313c425044da0155c1e3eb8cc65279a99de185af0c57f18f41ead7d93ba6dc6613f2ad338a0bc73d7c8c15eabf47c5de917babf44ce66982367ff38d9a586589fa525b72e6d8c7814386fdb76da0db6f786b020a558e7966dc94e5f75d9de94784297048c9c80103ff2e000800000041bc0c0041bc0c0083ccd2727719f195c487e165c7cebebabe280f08c4060100000000000000000042bc0c0043bc0c001e1ae1b8a976a99d3000d708b5cf41bd34a3610e18d33c7ea12090182c84fa7544bc0c0047bc0c0043bd45f3f7425544324bbdd6303adb92fe446555b5ec5548f4e481bdced123e748bc0c004fbc0c00bd692cd46c3fec36a58f2a963e8b88fb183b46848e2743dd3e599486c466bd7450bc0c005fbc0c000e8775e71c17af3afd9129e0b9cf76d1af0cc7cd49ef5e98d0c25a72b66349ac60bc0c007fbc0c001f8d8f32d7fd85ee07f5e5e9c280bab9ae9fe148bf2c03e45e786fc23024116280bc0c00bfbc0c0016b40a5455bd596f89b58207e272a8f333c03f1ec7e9dd9a1a47c20d4371eb63c0bc0c00c8bc0c006d3b9e55c56dd1fb5777bc115db1faca7a7f6e33cd9823f3a223581c740f833b",
+          "proof": "0xab04000014000000180000001c000000b70000000100000030296700970000000400620083949a77260c82bf2903287231c354afad2cd0a971cafbbffb4b9ab0976e004e6ea38f9546e52907ded0167dbe4632e04eac03f666f438e00a10f9862dad0c8134ce53679ed7011eaaaadea502000000023d0fd493b1a29af42b2123c76df45bb30c23e04fd7d1b9e61f0f12d72ae38359c09012c454056ebb0d67ce884f0d956a3d518287a1138af33b96da33902228c401050e000000c0ed6600bf0d6700ff3efa49c6740000000000000000000000000000000000000000000000000000d04892e72081458102788f7f15ae1a680dcb856cbb2c3c3e9c10c9c987618c8bc00d6700bf1d6700d5ec83b645020000000000000000000000000000000000000000000000000000ee95f1b48aca0030e111ae036708dd485966a4ad4545937168b9bebf4cfe3f7fc01d6700bf2567001d43a445c3000000000000000000000000000000000000000000000000000000aa3f61063151d7237f3e19b3f5c5f0d9dc64542e580a7cbde3cf066a2d480645312967003129670013989700000000000000000000000000000000000000000000000000000000009a36955c4d4c28076d1129145901a2f27136317a3cb6ee8138f2961003499ffe3229670033296700bcd5660100000000000000000000000000000000000000000000000000000000d4cd48a01c67c9e9d4a625517cfd80dbb486e1132c5f72cea4aad3567d79ddd734296700372967000ca75e0300000000000000000000000000000000000000000000000000000000843d6fcb25cbad80f4422c9fb9f9aa33cc73b8506e233d7fbbe4db363ad82724382967003f2967004c00700200000000000000000000000000000000000000000000000000000000fdf38c8934f0999de3908b98dac6fc3f64a3101b751e2c93cdcdaf6e15e61fb3202967002f29670020c60b05000000000000000000000000000000000000000000000000000000007b5ae9a0a85aa4a7fb7f0a2f0ddbcfea7580aab1d9341bec8c95daade30ab921002967001f296700f2adccd00000000000000000000000000000000000000000000000000000000049da1c0e0831edc012392454cd8b67483ea97f274356a09ea47ef5b89020874cc0286700ff2867007c55995300000000000000000000000000000000000000000000000000000000ec5218acc03377dbbfb6ac64e5848fcafea7234b27ad8572a310c329515b036440296700bf296700b9b52163000000000000000000000000000000000000000000000000000000003554a3bf92629a02170d3b9ff3314192d3882a0a55226bb4f9b2b79ef9278757c0276700bf2867006cb9c78301000000000000000000000000000000000000000000000000000000eda32d67a4ddc86be8287899ca3a85ecd1de8eaf79e6a844adb47b13c73dc681c0256700bf276700c0d320f102000000000000000000000000000000000000000000000000000000f0023d5293eb57ab74ac1078f558a53466a5a11c4c6764e2dec468cb28dc9cf8c02967003a2a6700b5866fd10200000000000000000000000000000000000000000000000000000070688554c4d97e6f1c14572284f3f04e151b1ffc3c3d377e4d26c5085276186b",
           "spv_client": {
               "index": "0x1",
-              "tx_hash": "0xcaee4eac91a43642464ee2c6582a86835f2bc10d55b15fcd22083ae9d273a1dc"
+              "tx_hash": "0x60ee209b6ae4958b74ed15397258f477090287802a71d936b36b7662f4829d45"
           }
       },
       "id": 1
@@ -81,17 +107,17 @@ With the command line option `-h`(alias of `--help`), help will be printed.
 
 ## Related Projects
 
-- [The Core Library of CKB Bitcoin SPV][Bitcoin SPV on CKB]
+- [The Core Library of CKB Dogecoin SPV]
 
-- [The CKB Bitcoin SPV Contracts](https://github.com/ckb-cell/ckb-bitcoin-spv-contracts)
+- [The CKB Dogecoin SPV Contracts]
 
 ## License
 
 Licensed under [MIT License].
 
+[Dogecoin]: https://dogecoin.org
 [Bitcoin]: https://bitcoin.org
 [CKB]: https://github.com/nervosnetwork/ckb
-[Bitcoin SPV on CKB]: https://github.com/ckb-cell/ckb-bitcoin-spv
 
 [type: `OutPoint`]: https://github.com/nervosnetwork/ckb/tree/v0.114.0/rpc#type-outpoint
 [type: `JsonBytes`]: https://github.com/nervosnetwork/ckb/tree/v0.114.0/rpc#type-jsonbytes
